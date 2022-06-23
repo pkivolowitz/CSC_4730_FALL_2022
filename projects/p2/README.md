@@ -1,143 +1,223 @@
-# Add a system call to xv6
+# Userland Stride Scheduler
 
-You are going to add a system call to xv6.
+In this project you will build a stride-based simulated scheduler in userland (i.e. in Linux,
+not xv6). Your scheduler will read a data file containing information simulating timer
+interrupts, job arrivals, job terminations, etc. Your output will be graded against known
+good results. Any deviation (even by a single space) may be counted as wrong, so follow the
+specification completely.
 
-## int `count(void)`
+You will be able to run tests against my grading script to debug any textual differences.
 
-The system you will add is named `count()`. It returns an integer which indicates the number of used process table slots. The process table is found within a structure called `ptable`. Consult line 10 of proc.c.
+## Partner rules
 
-You are reminded that the structure called `proc` contains a field called `state`. This is an `enum` called `procstate`. `procstate` is defined on line 35 of `proc.h`. You will note the first value, `UNUSED`. All other values are "used."
+No partners - this project is solo.
 
-## Unreasonably big hint
+## Stride Scheduler
 
-The files you will modify are:
+Refer to chapter 9 of OSTEP.
 
-* `syscall.h`
-* `syscall.c`
-* `user.h`
-* `usys.S`
-* `proc.c` put your main implementation here
-* `sysproc.c`
-* `Makefile`
+## Command Line Options
 
-## Userland test program
+Your program will take just one argument - the name of the data file to execute. It is an error if the file is not given or cannot be opened for reading.
 
-In order to test your new kernel, you must add a userland test program. Call your test program `test_count.c`. `test_count` will become the name of the executable. To include your userland test program in the xv6 build you must modify `Makefile`.
+## Platform
 
-Line 168 of the `Makefile` begins a listing of the names of the userland programs. Add `_test_count` to the list exactly like the other programs. Note the underscore.
+This project can be coded natively on the Mac.
 
-Here is the source code to the test program:
+This project must be coded under WSL on Windows or on a Linux machine. Windows does not have `getopt()`. Why? Microsoft. The one written for PD is cumbersome to install. So straight
+Windows is off the menu.
 
-```c
-#include "param.h"
-#include "types.h"
-#include "stat.h"
-#include "user.h"
-#include "fs.h"
-#include "fcntl.h"
-#include "syscall.h"
-#include "traps.h"
-#include "memlayout.h"
+## Input
 
-int main() {
-    int c = count();
-    printf(1, "count returns: %d\n", c);
-    exit();
-}
-```
+Your program will take a data file as its command line argument. It contains comma separated lines with the following syntax:
 
-### `printf`
+| opcode | argument 1 | argument 2 | meaning |
+| ------ | ---------- | ----------  | ------- |
+| newjob | NAME | PRIORITY | A new job with specified PRIORITY and NAME has arrived |
+| finish | | | The currently running job has terminated - it is an error if the system is idle |
+| interrupt | | | A timer interrupt has occurred - the currently running job's quantum is over |
+| block | | | The currently running job has become blocked |
+| unblock | NAME | | The named job becomes unblocked - it is an error if it was not blocked |
+| runnable | | | Print information about the jobs in the runnable queue |
+| running | | | Print information about the currently running job |
+| blocked | | | Print information about the jobs on the blocked queue |
 
-`printf` in xv6 is a shadow of its Linux self. The first argument is the file descriptor to which to write. The second argument is a template string. The third argument (and any additional arguments) are values to be printed.
+My test input is guaranteed to have correct syntax so you do not have to check for errors.
 
-Any questions about using `cout` will be responded to with laughter.
+## Operation
 
-### Ending programs with `exit()`
+### newjob
 
-Again, xv6 is not a real Linux. You must exit programs using the `exit()` system call. Ending with the typical `return 0` will produce an error message in the limited shell.
-
-### How to use the test program
+A new job is entered into the system. Its name and priority are given. Assume all job names are unique. A new job's arrival does not cause a rescheduling unless the system was idle.
 
 ```text
-$ sh
-$ sh
-$ sh
-$ test_count
-count returns: 6
-$ ^d $ test_count
-count returns: 5
-$ ^d $ test_count
-count returns: 4
-$ ^d $ test_count
-count returns: 3
-$
+New job: C added with priority: 200
 ```
 
-`^d` means control-d
+### finish
 
-### Interpreting test program output
-
-The above shows you in a shell, launching another shell, and another and another.
-
-Run the test program and it prints 6. The used process table slots correspond to these programs:
-
-* init
-* sh
-* test_count
-* sh
-* sh
-* sh
-
-Use `^d` to exit one shell and run the program again. Now you're at 5.
-
-Use `^d` to exit one shell and run the program again. Now you're at 4.
-
-Use `^d` to exit one shell and run the program again. Now you're at 3.
-
-I will award 5 points of extra credit if you record yourself singing a corrupted version of 99 bottles of beer on the wall that instead mimics the above. Post the video to youtube to receive the extra credit.
-
-## Printing debugging output from *inside* the kernel
-
-Use `cprintf` to print from inside the kernel. This is your principal debugging tool. `cprintf` dispenses with the first argument used with `printf`. Here is an example:
-
-```c
-cprintf("allocuvm out of memory\n");
-```
-
-## Build and launch of xv6
+The currently running job has completed and should be removed from the system.
 
 ```text
-make qemu-nox
+Job: B completed.
 ```
 
-If the build is successful, you will launch straight into xv6.
-
-## Exiting qemu
+If the system is idle, it is an error.
 
 ```text
-^ax
+Error. System is idle.
 ```
 
-## xv6 is **not** Linux
+### interrupt
 
-There are very few programs in xv6. Most of the programs you are accustomed to are absent. Those that are present may be mere shadows of their Linux selves. For example, the shell has essentially no features you are accustomed to.
-
-## Work rules
-
-Use a partner.
-
-## What to hand in
-
-The partner who hands in the code will supply a ZIP file to schoology.
-
-You must do this to create your ZIP file:
+The currently running task has completed its quantum. Adjust your bookkeeping. The scheduler needs to run again. 
 
 ```text
-$ rm -f p1.zip
-$ make clean
-$ zip p1.zip *
+Job: C scheduled.
 ```
 
-I'll award zero points for a project that doesn't build.
+It is an error if ```interrupt``` is received when the system is idle.
 
-The partner that is not handing in code must instead hand in a `.txt` file containing your partner's name.
+```text
+Error. System is idle.
+```
+
+### block
+
+The currently running task has become blocked. Perhaps it is asking for an I/O.
+
+```text
+Job: A blocked.
+```
+
+It is an error if the system is idle.
+
+```text
+Error. System is idle.
+```
+
+### unblock
+
+The named job has become unblocked. 
+
+```text
+Job: A has unblocked. Pass set to: 5000
+```
+
+It is an error if the named job was not blocked. 
+
+```text
+Error. Job: C not blocked.
+```
+
+Unblocked jobs return to the runnables. The scheduler is not run unless the system was idle.
+
+### runnable
+
+The runnables, if any, are listed. Example:
+
+```text
+Runnable:
+NAME    STRIDE  PASS  PRI
+C       500     1000  200
+A       500     1500  200
+```
+
+These must be listed in the order they would be scheduled.
+
+### running
+
+The running task is described (if system is not idle). Example:
+
+```text
+Running:
+NAME    STRIDE  PASS  PRI
+B       1000    1000  100
+```
+
+### blocked
+
+The blocked tasks are listed, if any. Example:
+
+```text
+Blocked:
+NAME    STRIDE  PASS  PRI
+A       500     2000  200
+```
+
+## Picking the next task to schedule
+
+The task with the lowest pass value is chosen to run next. In the event of a tie, sort alphabetically. If ```A``` and ```B``` have the same pass value, ```A``` will run.
+
+```text
+Job: C scheduled.
+```
+
+## Running the tests
+
+The results of the stride schedule are deterministic. Given the same input, you will get the same output. Therefore, automatic testing is possible.
+
+I provide a `bash` script for testing purposes. The script takes two command line options.
+
+| option | required? | argument | purpose |
+| ------ | --------- | -------- | ------- |
+| a | no | progname | specifies name of your executable - defaults to ./a.out |
+| i | yes | testroot | specifies the root name of the test to run |
+
+The folder containing the test script is meant to contain the folder `tests` where the test data is actually stored. So, if you specify `-i test1`, the actual data file will resolve to `tests/test1.input.txt`.
+
+Here is sample output from a test:
+
+```text
+./expected_output_test.bash -i test1
+Test input file:       tests/test1.input.txt
+Expected output file:  tests/test1.expected_output.txt
+Expected output (must match letter for letter):
+Runnable:
+None
+Your output:
+Runnable:
+None
+Differences:
+PASSED
+Test finished
+hyde pk_stride_scheduler $>
+```
+
+Here is output from a more sophisticated test:
+
+```text
+./expected_output_test.bash -i test5
+Test input file:       tests/test5.input.txt
+Expected output file:  tests/test5.expected_output.txt
+Expected output (must match letter for letter):
+New job: A added with priority: 100
+Job: A scheduled.
+New job: B added with priority: 100
+Job: B scheduled.
+Job: A scheduled.
+Job: B scheduled.
+Job: A scheduled.
+Job: B scheduled.
+Job: A scheduled.
+Job: B scheduled.
+Your output:
+New job: A added with priority: 100
+Job: A scheduled.
+New job: B added with priority: 100
+Job: B scheduled.
+Job: A scheduled.
+Job: B scheduled.
+Job: A scheduled.
+Job: B scheduled.
+Job: A scheduled.
+Job: B scheduled.
+Differences:
+PASSED
+Test finished
+hyde pk_stride_scheduler $>
+```
+
+You will be given only *some* of the tests I will use for grading. Some, I hold in reserve to test corner cases, etc. If you pass all the tests you are given, you have a reasonable change of a high score but this is not a certainty.
+
+Feel free to read the source code of the test script to see an example of `bash` scripting.
