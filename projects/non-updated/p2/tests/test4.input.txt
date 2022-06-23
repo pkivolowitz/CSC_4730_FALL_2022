@@ -1,4 +1,0 @@
-newjob,a,100
-interrupt
-interrupt
-finish
