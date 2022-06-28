@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/perrykivolowitz/buffet/4730/CSC4730-Fall-2022'
+make: Leaving directory `/Users/perrykivolowitz/buffet/4730/CSC4730-Fall-2022'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+
