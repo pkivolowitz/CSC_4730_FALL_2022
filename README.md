@@ -25,3 +25,6 @@ would study this code, every line, to deeply learn OS implementation
 and down-n-dirty programming. I did (well, the original v6 which
 was new when I started). Look at me know.
 
+[Here](./pptx/) are some small Powerpoint slide decks I
+made in the past. I do not lecture from Powerpoint but
+these might explain somethings quickly.
