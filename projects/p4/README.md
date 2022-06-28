@@ -1,4 +1,6 @@
-# Summative Synchronization Project
+# CSC 4730 Project 4
+
+**Summative Synchronization Project**
 
 In this project you will build a semaphore from a condition variable and a mutex.
 

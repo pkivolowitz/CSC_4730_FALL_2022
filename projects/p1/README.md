@@ -1,6 +1,6 @@
 # CSC 4730 Project 1
 
-Fork, exec, pipes and redirection
+**Fork, exec, pipes and redirection**
 
 ## Objectives
 

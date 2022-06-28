@@ -28,3 +28,7 @@ was new when I started). Look at me know.
 [Here](./pptx/) are some small Powerpoint slide decks I
 made in the past. I do not lecture from Powerpoint but
 these might explain somethings quickly.
+
+[Here](./projects/) are the projects. A number of these
+are already uploaded. If you think you can tackle them
+in advance, knock yourself out.

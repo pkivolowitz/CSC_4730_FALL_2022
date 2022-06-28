@@ -1,4 +1,6 @@
-# Userland Stride Scheduler
+# CSC 4730 Project 2
+
+**Userland Stride Scheduler**
 
 In this project you will build a stride-based simulated scheduler in userland (i.e. in Linux,
 not xv6). Your scheduler will read a data file containing information simulating timer
