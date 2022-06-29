@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Log Files
+*.log
+
 # Mac BS
 .DS_Store
 

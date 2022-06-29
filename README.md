@@ -18,6 +18,16 @@ On the Mac, you'll just use the terminal.
 [Here](./syllabus/CSC%204730%20Fa22%20Kivolowitz.pdf) is the
 syllabus.
 
+The attendance and lateness policy contained in the syllabus reads:
+
+```text
+For every five classes missed, your final grade will be reduced by a full letter. Absences due to sports, music, or any other campus activity count as an unexcused absence. To be clear: A full letter grade means exactly that. For example, a B+ will be reduced to a C+.
+
+We meet for 65 minutes. There is little room to “leave early.” Therefore, leaving a class early will be counted as a quarter class missed. 
+
+We meet for 65 minutes. There is little room to “arrive late.” Therefore, arriving late to a class will be counted as a quarter class missed. 
+```
+
 [Here](./xv6/README.md) is information about downloading xv6.
 Even though you won't use this source code for projects, we will
 use it for discussion - so download and unzip it. Personally, I
