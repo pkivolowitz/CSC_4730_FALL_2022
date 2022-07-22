@@ -1,4 +1,4 @@
-# CSC 4730 Project 2
+# CSC 4730 Project 3
 
 Hooray! You get to reuse some code from the previous project. The
 commands you must handle are repeated from the previous project.
