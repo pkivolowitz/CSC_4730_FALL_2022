@@ -1,4 +1,6 @@
-# Free Space Managers
+# CSC 4730 Project 3
+
+**Free Space Managers**
 
 In this project you will write three programs that implement free space managers.
 

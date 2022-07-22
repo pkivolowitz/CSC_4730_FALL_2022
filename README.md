@@ -18,7 +18,8 @@ On the Mac, you'll just use the terminal.
 [Here](./syllabus/CSC%204730%20Fa22%20Kivolowitz.pdf) is the
 syllabus.
 
-The attendance and lateness policy contained in the syllabus reads:
+Worthy of being highlighted, the attendance and lateness policy
+contained in the syllabus reads:
 
 ```text
 For every five classes missed, your final grade will be reduced by a full letter. Absences due to sports, music, or any other campus activity count as an unexcused absence. To be clear: A full letter grade means exactly that. For example, a B+ will be reduced to a C+.
