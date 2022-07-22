@@ -43,30 +43,18 @@ then
 	exit 1
 fi
 
-input_file=$root".txt"
+input_file=$root".input.txt"
 expected_output=$root".expected_output.txt"
-
-if [ ! -f $input_file ]
-then
-	echo $input_file "cannot be found"
-	exit 1
-fi
-
-if [ ! -f $expected_output ]
-then
-	echo $expected_output "cannot be found"
-	exit 1
-fi
 
 echo "Test input file:      " $input_file
 echo "Expected output file: " $expected_output
 echo "Expected output (must match letter for letter):"
 cat $expected_output
-$prog < $input_file > $temp_file
+$prog $input_file > $temp_file
 echo "Your output:"
 cat $temp_file
 echo "Differences:"
-diff -i -E -w -B $temp_file $expected_output
+diff $temp_file $expected_output
 a=$?
 if [ $a -eq 0 ]
 then

@@ -1,4 +1,0 @@
-# Best Fit
-# Tests giving away all of memory.
-a 512
-p

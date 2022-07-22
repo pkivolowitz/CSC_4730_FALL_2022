@@ -1,442 +1,382 @@
-# CSC 4730 Project 3
+# CSC 4730 Project 2
 
-**Free Space Managers**
+Hooray! You get to reuse some code from the previous project. The
+commands you must handle are repeated from the previous project.
 
-In this project you will write three programs that implement free space managers.
+In this project you will build a Multilevel Feedback Queue simulated
+scheduler in userland. Your scheduler will read a data file
+containing information simulating timer interrupts, job arrivals, job
+terminations, etc. Your output will be graded against known good
+results. Any deviation (even by a single space) may be counted as wrong,
+so **follow the specification completely**.
 
-These will be:
+You will be able to run tests against my grading script to debug any
+textual differences.
 
-1. Slab
+## Requirements Embedded in the Specification
 
-2. Next Fit
+To encourage you to read this specification thoroughly, certain project
+requirements are embedded inline in this document. Failure to
+implement requires will result in points off.
 
-3. Best Fit
+## Partner rules
 
-You can choose to implement these in C or C++. I would definitely
-choose C++ - see [here](./README.md#suggestion).
+You may use a partner on this project.
 
-You will implement these as three separate executables but you may share code
-between them if you are able to design some common data structures and
-algorithms.
+One partner must turn in the code. This code must list the authors.
+If you have no partner, then say so. If you have a partner, you must
+identify them. Failure to do this will be points off.
 
-The programs may read a list of commands from standard input and write
-results to standard output. Alternatively, your programs may execute a
-prescribed sequence of steps, for example the slab allocator.
+The other partner must hand in only a text file stating who the
+partners are. A text file is a text file. It is not a PDF, not a
+Google Doc, not a web page, not a Word file and not a spreadsheet.
+Failure to do this will be points off.
 
-You have **NO FREEDOM WHATSOEVER** as to the
-format of the output as your programs will be tested by shell script
-(provided to you with some but not all test data).
+## Choice of Language
 
-As such, you cannot use native Windows for this project.
+You may use C or C++. I encourage you to use C++ to take advantage of
+[`deque`](https://cplusplus.com/reference/deque/deque/).
 
-## Slab Allocator
+## Use of Precise Integer Types
 
-This program is *not* interactive. You must write the tests
-described below, hard coding them into the program.
+Please use `int32_t` rather than `int`, etc. This is not a requirement
+but I do encourage it.
 
-The slab allocator will work on slabs of 512 bytes. A "gulp" is when
-the allocator has run out of slabs to dole out and needs to allocate
-a large group of slabs all at once. The gulp size is 128. That is,
-when the allocator needs to allocate more slabs because it has run
-out, the allocator will make a gulp of 128 * 512 bytes.
+## MLFQ in OSTEP
 
-Slabs which are returned to the pool, are pushed onto a queue. If
-slab *a* is freed, the next slab to be allocated (without intervening
-frees) will be *a*.
+Refer to chapter 8 of OSTEP. Reminder (adapted for this project):
 
-Your program **must** follow these steps which will exercise your safeguards
-and error checking. Any tests that fail must print the error messages given
-to you below and must cause the program to return 1.
+* Rule 1: If Priority(A) > Priority(B), A runs (B doesn’t).
 
-If no errors are found, the program must return 0.
+* Rule 2: If Priority(A) = Priority(B), A & B run in round-robin
+fashion.
 
-Note: In some of these steps, it is an error to have NOT found an error.
-In other words, you're supposed to trigger error checking code you must
-write and if the error checking code does not trigger *that's* the
-real error that must be reported and your program exit with a return
-code of 1.
+* Rule 3: When a job enters the system, it is placed at the highest
+priority (the topmost queue).
 
-1. Allocate 256 slabs consecutively.
+* Rule 4: Once a job uses up its time allotment at a given level (regardless
+of how many times it has given up the CPU), its priority is
+reduced (i.e., it moves down one queue).
 
-   This will cause two gulps and 256 print outs from your allocator.
+* Rule 5: After some time period S, move all the jobs in the system
+to the topmost queue.
 
-   You will test to ensure the number of available slabs is exactly 0
-   because step 1 allocates the exact right number of slabs to empty
-   all available.
+In the above, references to Priority equates to which queue a process
+is on.
 
-2. All 256 slabs are then freed. The order in which they are freed is not important.
+## Command Line Options
 
-   You will test to ensure that the number of available slabs is
-   exactly 256. If the number of available slabs is not 256 you will
-   print the error given to you below and exit the program with
-   return code 1.
+Your program will take just one argument - the name of the data file to
+execute.
 
-3. One slab will be allocated and then freed. Remember its address.
+It is an error if the file is not given *or* cannot be opened for
+reading. If this error occurs, you must emit an explanatory message
+using `cerr`. The error message strings are:
 
-4. Another slab will be allocated and then freed. Remember its address.
+* "Missing input file name." and
 
-5. The two addresses are compared - they should be the same and reported so.
+* Input file failed to open.
 
-   If the test fails, your program must exit with a return code of 1.
+If these errors occur, your program must terminate with a return code
+of 1.
 
-6. You will attempt to free a slab giving a null address. This should be
-   flagged as an error. If you don't catch the error, the message given
-   below must be printed and your program exit with return code 1.
+## Platform
 
-7. You will attempt to free too many buffers. At this time, all buffers
-   should have been returned to the free pool. Repeat an attempt to
-   free the buffer you remembered in Step 4. Because the number of
-   available buffers reads full, the "too many frees" error should
-   be triggered. 
+This project can be coded natively on the Mac, you don't need to use
+a Linux VM.
 
-   **NOTE THAT YOU SHOULD CHECK FOR TOO MANY FREES BEFORE CHECKING
-   FOR A DOUBLE FREE.**
+This project must be coded under WSL on Windows or on a Linux machine.
+Windows does not have `getopt()`. Why? Microsoft. The one written for PD
+is cumbersome to install. So, straight Windows is off the menu.
 
-8. Now allocate TWO slabs. Return the second one TWICE. This should
-   trigger a double free error. If the error is not found, report
-   the failure to catch the error using the text given below and
-   exit your program with a return code of 1.
+## Input
 
-9. You will attempt to free a make believe slab whose address is 12345.
-   This will, of course, be flagged as an error. If you do not catch
-   the error, you must note this using the text given below. Then
-   your program must exit with a return code of 1.
+Your program will take a data file as its command line argument. It
+contains *comma separated value* lines with the following syntax:
 
-[Here](./slab_output.txt) is the output you must produce LETTER FOR LETTER... it is long.
+| opcode | argument 1 | argument 2 | meaning |
+| ------ | ---------- | ----------  | ------- |
+| newjob | NAME | | A new job arrives with the given NAME **\*** |
+| finish | | | The currently running job has terminated - it is an error if the system is idle |
+| interrupt | | | A timer interrupt has occurred - the currently running job's quantum is over |
+| block | | | The currently running job has become blocked |
+| unblock | NAME | | The named job becomes unblocked - it is an error if it was not blocked |
+| runnable | | | Print information about the jobs in the runnable queue |
+| running | | | Print information about the currently running job |
+| blocked | | | Print information about the jobs on the blocked queue |
+| epoch | | | An Epoch has elapsed. Process as per MLFQ algorithm - this is not in your previous project |
 
-Line 1 says:
+**\*** Note that this project's "newjob" does not take a PRIORITY. This
+is different from your previous project. It is assigned to the topmost
+queue as per the MLFQ algorithm.
 
-```text
-Gulping
-```
+My test input is guaranteed to have correct syntax so you do not have to
+check for errors.
 
-This is the output you must emit when you gulp space for 128 512 byte slabs.
+Note that if you create your own tests (you should), you can add
+comments by appending a comma plus your comments at the end of an
+input line. Don't put commas in your comments. See
+[this](./tests/test11.input.txt) for an example.
 
-Here are the next three lines. As you can see, slabs are being allocated as
-per step 2 above. Notice the number at the end of each line. This number is
-the count of the available slabs left to allocate. One slab was given away,
-hence the number 127. Another is given away, hence the number 126. Etc.
-
-```text
-Allocating Slab  127
-Allocating Slab  126
-Allocating Slab  125
-```
-
-The following is key - found on Lines 128 to 131:
+For example:
 
 ```text
-Allocating Slab    1
-Allocating Slab    0
-Gulping
-Allocating Slab  127
+newjob,A,A runs.
+newjob,B
+newjob,C
+interrupt,A goes to 1. B runs.
 ```
 
-This means you correctly gulped again when you ran out of available
-buffers. The next 128 lines are allocating the newly gulped
-buffers.
+Lines 1 and 4 have comments.
 
-Line 259 is printed after you have freed all of the slabs you
-allocated. If this test fails, you must print:
+## NO MAGIC NUMBERS
+
+You must not use any magic numbers. Any numeric literals should be
+`const` variables with **good descriptive names**.
+
+## The Queues
+
+**PAY ATTENTION TO THIS!**
+
+There shall be a total of 4 queues named 0 through 3.
+
+Each queue is managed with Round Robin.
+
+The quantum is 10ms. The milliseconds as units is, of
+course, meaningless as this is a simulation.
+
+The Epoch is defined as 1000ms.
+
+Any deviation from this will result in points off.
+
+## Operation
+
+### newjob
+
+A new job is entered into the system. Its name is given.
+Assume all job names are unique. A new job's arrival does not cause a
+rescheduling unless the system was idle.
 
 ```text
-"Number of Available Slabs should be 0. Is: <some number> (Wrong)
+New job: C added.
 ```
 
-Then your program must exit with return code of 1.
+### finish
 
-Line 260 caused by step 2 above.
-
-Line 261 is the test called for in step 2 above. If the test
-fails you must print:
+The currently running job has completed and should be removed from the
+system.
 
 ```text
-Number of Available Slabs should be 256. Is: <some number> (Wrong)
+Job: B completed.
 ```
 
-Then your program must exit with a return code of 1.
+If the system is idle, it is an error.
 
-You are now working on Step 3, 4 and 5 above.
-
-Assuming you're still running, you must allocate one slab. Remember its
-address. Free it. This accounts for line 262 and is Step 3.
-
-Allocate a second slab. This accounts for line 263 and is Step 4.
-Remember its address.
-
-You must test that the addresses returned by both of the last allocations
-are **the same**. This is Step 5 above.
-
-**THIS MEANS YOUR FREE LIST IS MANAGED AS A LIFO - LAST IN - FIRST OUT.**
-
-Line 264 is printed if the results match. If the two values are NOT the
-same, this is the error you must print:
+Note that errors of this kind are emitted to `cout` and not `cerr`.
 
 ```text
-Alloc / Free / Alloc Test " failed
+Error. System is idle.
 ```
 
-Then your program exits with a return code of 1.
+### interrupt
 
-Assuming you are still running you are proceeding to Step 6. You must test your handling of attempting to free a nullptr.
-
-Line 265 shows success. If you fail to catch the attempt to free a nullptr,
-you must print:
+The currently running task has completed its quantum. Adjust your
+bookkeeping. The scheduler needs to run again.
 
 ```text
-Did Not Catch Attempt to Free NULL
+Job: C scheduled.
 ```
 
-If the test failed, you must then exit with a return code of 1.
-
-Assuming you are still running you are moving on to Step 7. At this time, all buffers
-should have been returned to the free pool. Repeat an attempt to free the buffer
-you remembered in Step 4. Because the number of available buffers reads full,
-the "too many frees" error should be triggered.
-
-**NOTE THAT YOU SHOULD CHECK FOR TOO MANY FREES BEFORE CHECKING FOR A DOUBLE FREE.**
-
-Line 266 shows the correct result. If your test failed, you must print:
+It is an error if `interrupt` is received when the system is idle.
 
 ```text
-Did Not Catch Freeing of Too Many Buffers
+Error. System is idle.
 ```
 
-and exit your program with a return code of 1.
+### block
 
-Now you are on to Step 8.
-
-Line 267 shows an allocation.
-
-Line 268 shows an allocation. Free this slab twice. This should trigger
-line 269. If it does not, you must print:
+The currently running task has become blocked. Perhaps it is asking for
+an I/O. The argument specifies the number of milliseconds to be added
+to the task's quantum.
 
 ```text
-Did Not Catch Attempt to Double Free
+Job: A blocked.
 ```
 
-and exit your program with a return code of 1.
-
-Assuming you're still running, now you are on Step 9.
-
-You are to attempt to free a slab at address 12345. This of course is
-nonsense - you must catch this error. If you correctly do, print line
-270. If you don't you must print:
+It is an error if the system is idle.
 
 ```text
-Did Not Catch Attempt to Free BAD Address
+Error. System is idle.
 ```
 
-Finally, print line 271 and exit your program with return code of 0.
+### unblock
 
-The destructors will run which should **FREE EVERY BYTE YOU HAVE
-ALLOCATED WHICH IS EASY TO DO SINCE YOU REMEMBERED THE BASE ADDRESS
-OF EVERY GULP, RIGHT?**
+The named job has become unblocked. Return it to the queue it
+came from and reschedule.
 
-### Setting Expectations
+```text
+Job: A has unblocked.
+```
 
-My implementation with all error checking and some comments and
-blank lines ran 207 lines. This is just to set your expectations and
-is not a challenge. My program, by the way, is shorter that the
-text describing it. When you think of complaining how much time
-you're putting into this program, I had to:
+It is an error if the named job was not blocked.
 
-* Think of the project
+```text
+Error. Job: C not blocked.
+```
 
-* Write the program
+Unblocked jobs return to the runnables onto the queue on which they
+were last found as per MLFQ. The scheduler is not run unless
+the system was idle.
 
-* Write the specification
+### runnable
 
-So, we all shared the pain. :)
+The runnables, if any, are listed. Note this command's output
+is quite different from the previous project. Example:
 
-## Next Fit and Best Fit
+```text
+Runnables:
+NAME    QUEUE  
+B       0       
+A       0       
+C       2
+Z       3
+G       3
+T       3
+```
 
-Yes, TWO MORE programs to implement in this project. Yikes.
+These must be listed in the order they would be scheduled.
 
-**If you DESIGN your implementation right, both programs will
-be essentially identical.**
+### running
 
-My implementations differ in length by 3 lines and sixty seven
-bytes. Of course, this counts only length. There are more than
-three different lines and sixty seven different characters. For
-example, one difference would be:
+The running task is described (if system is not idle). Example:
+
+```text
+Running:
+NAME    QUEUE
+H       0
+```
+
+### blocked
+
+The blocked tasks are listed, if any. Example:
+
+```text
+Blocked:
+NAME    QUEUE
+I       0
+K       2
+J       2
+```
+
+### epoch
+
+You will be told when an epoch has
+expired when you receive an "epoch" command. Handle this as per
+the MLFQ algorithm. Note that "epoch" does **not** cause a
+rescheduling. That is, a process running when you receive an
+"epoch" will remain running but will also be marked as coming
+from the initial highest priority queue.
+
+Here is a sample output from "epoch":
+
+```text
+Job: C lifted up.
+Job: B lifted up.
+Job: A lifted up.
+```
+
+"epoch" should produce a line for every process in the system.
+
+## Picking the Next Task to Schedule
+
+When a rescheduling is required, pick the next task to run according
+to the MLFQ algorithm.
+
+```text
+Job: C scheduled.
+```
+
+## Running the tests
+
+The results of the stride schedule are deterministic. Given the same
+input, you will get the same output. Therefore, automatic testing is
+possible.
+
+I provide a `bash` script for testing purposes. The script takes two
+command line options.
+
+| option | required? | argument | purpose |
+| ------ | --------- | -------- | ------- |
+| a | no | prog_name | specifies name of your executable - defaults to ./a.out |
+| i | yes | test_root | specifies the root name of the test to run |
+
+The folder containing the test script is meant to contain the folder
+`tests` where the test data is actually stored. So, if you specify `-i
+test1`, the actual data file will resolve to `tests/test1.input.txt`.
+
+Here is sample output from a test:
+
+```text
+```
+
+Here is output from a more sophisticated test:
+
+```text
+```
+
+You will be given only *some* of the tests I will use for grading. Some,
+I hold in reserve to test corner cases, etc. If you pass all the tests
+you are given, you have a reasonable change of a high score but this is
+not a certainty.
+
+Feel free to read the source code of the test script to see an example
+of `bash` scripting.
+
+## What to Turn In
+
+This is *the second time* this requirement is being stated. I must
+*really, really* mean it.
+
+One partner must turn in the code. This code must list the authors.
+If you have no partner, then say so. If you have a partner, you must
+identify them. Failure to do this will be points off.
+
+The other partner must hand in only a text file stating who the
+partners are. A text file is a text file. It is not a PDF, not a
+Google Doc, not a web page, not a Word file and not a spreadsheet.
+Failure to do this will be points off.
+
+## Setting Expectations
+
+For the purpose of setting your expectations only, my solution is
+295 lines long including comments, asserts, and some calls to
+`cout` spread over several lines.
+
+As usual, the specification is longer than the solution :(.
+
+These are the includes from my solution, provided for your
+interest purposes only. You don't have to follow this example:
 
 ```c++
-BestFit nf(size_of_ram);
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <deque>
+#include <vector>
+# include <iomanip>
 ```
 
-versus
+Remember:
 
-```c++
-NextFit nf(size_of_ram);
-```
+* no magic numbers.
 
-Do you dig what I'm putting down?
+* Constants should be `const`.
 
-### NOT REAL MEMORY
-
-This is a simulation. All sizes are given in kibibytes. No actual
-calls to `malloc()` are made in these programs. You are *making
-believe* you're managing free user memory. Hint: Of course, you might
-create instances of classes that might get pushed onto and removed
-from various `vector`s.
-
-### Command Line Arguments You Must Support
-
-All three executables must implement the following command line options:
-
-| Option | Argument | Meaning | Default |
-| ------ | -------- | ------- | ------- |
-| -h     | none     | prints this help text | none |
-| -k     | number of Kibibytes | sets the maximal size of free memory | 512 |
-
-### Interactive Commands You Must Implement
-
-| Command | Argument | Meaning |
-| ------- | -------- | ------- |
-| q | None | Exits the program |
-| p | None | Prints the Free and Allocated lists |
-| a | size | Attempts to Allocate `size` kibibytes |
-| f | addr | Attempts to Free an allocation starting at `addr` |
-| # | text | A `#` means skip the entire line |
-
-### Test Files
-
-A lot of [tests](./tests/) are provided to you. These are what will be used
-to grade your work. You are also provides with a
-[shell script](./tests/expected_output_test.bash) that will run the tests
-*and tell you if your program is correct!*.
-
-**Remember, you must match output letter for letter to pass.**
-
-With that said, I have programmed the `diff` command to be somewhat
-permissive.
-
-Here is an example of using one of the tests:
+* No warnings! I will be compiling your code with:
 
 ```text
-./expected_output_test.bash -a ../best -i test_20
+g++ -Wall --pedantic -g -std=c++11 your_code.cpp
 ```
 
-Notice this assumes you have changed directories to a subfolder in
-relation to where your executables live.
-
-Tests numbered 19 or less are for Next Fit.
-
-Tests numbered 20 and more are for Best Fit.
-
-Here is the output from `test_20` using the test script.
-
-```text
-Test input file:       test_20.txt
-Expected output file:  test_20.expected_output.txt
-Expected output (must match letter for letter):
-Free List
- Index   Start  Length
-[0000]       0     512
-
-Allocated List is empty
-
-Your output:
-Free List
- Index   Start  Length
-[0000]       0     512
-
-Allocated List is empty
-
-Differences:
-PASSED
-Test finished
-```
-
-Notice there are no prompts (see next) and that both your
-output and the expected output are given. If there were any
-differences, the differences would have been printed as well.
-
-### Disappearing Prompt
-
-You must detect if you are taking input directly from an
-interactive terminal or not. Hint: `isatty()`. If you are
-taking input directly from the console, you must print
-a `>` plus a space as the interactive prompt.
-
-If you detect that you are reading input from something
-*other* than a terminal, skip printing the prompt entirely.
-
-### Suggestion
-
-Leverage your C++ knowledge to make implementation easier. You can
-use `vector` and `algorithm` for example. Mentioning `algorithm`
-might be a hint.
-
-### Next Fit
-
-Beginning at the beginning literally, First Fit starts looking for
-free memory beginning with the first free section. This is trivial
-to implement but leads to lots of fragmentation. An improvement is
-Next Fit.
-
-Next Fit remembers where it stopped checking for free sections
-the last time. For example, if the 10th free spot was chosen
-to be split, and not used up completely, there would still be
-a (smaller) 10th free spot. THIS is where Next Fit would start
-looking for the next allocation.
-
-Clearly, you'll need to handle a number of corner / special
-cases. Here are two - there might be more:
-
-* What happens when you think you'll start looking at what
-was the last free section but that section was used completely
-so it no longer exists?
-
-* When happens when you reach the end of the list of free
-sections having started searching in the middle of the list?
-
-### Next Fit Tests
-
-| Test Number | Purpose |
-| ----------- | ------- |
-| 01 | Tests proper initialization |
-| 02 | Tests giving away all of memory |
-| 03 | Tests giving away all of memory and then taking it back |
-| 04 | Tests coalescing |
-| 05 | Tests coalescing |
-| 06 | Tests Coalescing |
-| 07 | Tests something |
-| 08 | Tests making a hole then giving part of it away  |
-| 09 | Tests allocation too big for hole |
-| 10 | Test the NEXT fit behavior |
-| 11 | Test the NEXT fit behavior with a failure |
-| 12 | Tests next index wrap around |
-| 13 | Tests bad free |
-| 14 | Tests bad free |
-| 15 | Tests bad free |
-
-### Best Fit
-
-Best fit differs from Next Fit in that it will match the
-current allocation request to the "best" free section i.e.
-it will allocate from the smallest section that is big
-enough to handle the request.
-
-I don't know about you, but I smell a `sort`. Maybe more
-than one? Depends on your implementation. I used two
-different sorts but maybe that's just me. Your mileage
-may vary.
-
-### Best Fit Tests
-
-| Test Number | Purpose |
-| ----------- | ------- |
-| 20 | Tests initialization |
-| 21 | Tests giving away all of memory. |
-| 22 | Tests giving away all of memory and then taking it back. |
-| 23 | Test Free From Middle - No Coalesce  |
-| 24 | Test Free From Beginning - No Coalesce  |
-| 25 | Test Free From End - No Coalesce  |
-| 26 | Test Free With Coalesce Forwards  |
-| 27 | Test Free With Coalesce Backwards  |
-| 28 | Test Free With Coalesce Forwards and Backwards  |
-| 29 | Tests passing over bigger block for smaller one  | 30 | Tests bad free |
-| 31 | Tests bad free |
-| 32 | Tests bad free |
+You might want to do the same.

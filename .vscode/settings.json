@@ -1,4 +1,12 @@
 {
 	"makefile.extensionOutputFolder": "./.vscode",
-	"C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+	"C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+	"cSpell.words": [
+		"cond",
+		"MLFQ",
+		"nanosleep",
+		"newjob",
+		"OSTEP",
+		"pids"
+	]
 }

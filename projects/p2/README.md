@@ -1,7 +1,5 @@
 # CSC 4730 Project 2
 
-**Userland Stride Scheduler**
-
 In this project you will build a stride-based simulated scheduler in userland (i.e. in Linux,
 not xv6). Your scheduler will read a data file containing information simulating timer
 interrupts, job arrivals, job terminations, etc. Your output will be graded against known
@@ -72,7 +70,7 @@ Error. System is idle.
 
 ### interrupt
 
-The currently running task has completed its quantum. Adjust your bookkeeping. The scheduler needs to run again. 
+The currently running task has completed its quantum. Adjust your bookkeeping. The scheduler needs to run again.
 
 ```text
 Job: C scheduled.
@@ -100,13 +98,13 @@ Error. System is idle.
 
 ### unblock
 
-The named job has become unblocked. 
+The named job has become unblocked.
 
 ```text
 Job: A has unblocked. Pass set to: 5000
 ```
 
-It is an error if the named job was not blocked. 
+It is an error if the named job was not blocked.
 
 ```text
 Error. Job: C not blocked.
@@ -163,8 +161,8 @@ I provide a `bash` script for testing purposes. The script takes two command lin
 
 | option | required? | argument | purpose |
 | ------ | --------- | -------- | ------- |
-| a | no | progname | specifies name of your executable - defaults to ./a.out |
-| i | yes | testroot | specifies the root name of the test to run |
+| a | no | prog_name | specifies name of your executable - defaults to ./a.out |
+| i | yes | test_root | specifies the root name of the test to run |
 
 The folder containing the test script is meant to contain the folder `tests` where the test data is actually stored. So, if you specify `-i test1`, the actual data file will resolve to `tests/test1.input.txt`.
 

@@ -1,6 +1,4 @@
-# CSC 4730 Project 4
-
-**Summative Synchronization Project**
+# CSC 4730 Project 5
 
 In this project you will build a semaphore from a condition variable and a mutex.
 
@@ -83,7 +81,7 @@ the potato.
 ## Discussion
 
 The semaphore must be programmed to allow the number of hot
-potatos specified by the user on the command line to be active
+potatoes specified by the user on the command line to be active
 at any one time.
 
 ### Semaphore Functions
@@ -100,16 +98,16 @@ int32_t SemWait(Sem & s);
 ### Output During Set Up
 
 You must print status information prior to releasing the
-potatos. For example:
+potatoes. For example:
 
 ```text
 Number of children: 4
-Number of potatos:  1
+Number of potatoes:  1
 Child:  0 has started
 Child:  2 has started
 Child:  1 has started
 Child:  3 has started
-Hit return to put potatos in play: 
+Hit return to put potatoes in play: 
 ```
 
 ### Sleeping
@@ -123,6 +121,9 @@ loop, for example, prints 4 times per second. This equates to
 The "players" must sleep between 1,000 and 50,000 microseconds
 while holding a potato and also after releasing the potato. Note
 the use of `rand()`.
+
+Note that `usleep()` is deprecated. You might wish to use
+`nanosleep()` instead to be versed in more current technology.
 
 ### Infinite Loops
 
@@ -148,7 +149,7 @@ but it doesn't hurt. On Linux, it is necessary.
 ### Setting Expectations
 
 My implementation, without many comments, but with blank lines
-and all self-contained is 168 lines. This is not a challenge. 
+and all self-contained is 168 lines. This is not a challenge.
 Rather it is to set your expectations. If you, for example,
 find yourself writing double this number of lines, you should
 ask yourself if you aren't either mistaken or are working too
@@ -174,8 +175,8 @@ a hot potato.
 Notice four numbers are preceded by "\*". These are the players
 who are in possession of a hot potato *right now*. **NOTE** that
 the numbers of "\*" **might be less** than the number of hot
-potatos but **will NEVER** be more. If you see more "\*"
-than the number of potatos, you have a bad bad bug.
+potatoes but **will NEVER** be more. If you see more "\*"
+than the number of potatoes, you have a bad bad bug.
 
 The "variance" is the largest value minus the smallest value
 divided by the largest value times 100. Over time, as the

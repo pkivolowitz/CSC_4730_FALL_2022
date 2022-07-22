@@ -1,3 +1,0 @@
-# Best Fit
-# Tests for proper initialization.
-p

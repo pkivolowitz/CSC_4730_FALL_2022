@@ -1,6 +1,0 @@
-Free List
- Index   Start  Length
-[0000]       0     512
-
-Allocated List is empty
-
