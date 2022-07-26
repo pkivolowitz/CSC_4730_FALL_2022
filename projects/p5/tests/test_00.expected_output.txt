@@ -1,0 +1,7 @@
+Machine Architecture:
+Page Size (bits):           11
+Page Size (bytes):          2048
+VA Size (bits):             16
+VA Size (bytes):            65536
+Physical Memory (bytes):    16384
+Physical Pages:             8

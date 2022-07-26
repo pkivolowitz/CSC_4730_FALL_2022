@@ -1,4 +1,4 @@
-# CSC 4730 Project 5
+# CSC 4730 Project 6
 
 In this project you will build a semaphore from a condition variable and a mutex.
 

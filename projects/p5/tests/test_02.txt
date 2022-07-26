@@ -1,0 +1,5 @@
+Read 0			// Page faults and gets loaded into PFN 0
+Write 100		// Emits a NEWLY DIRTY
+Write 200		// Emits a REPEAT WRITE
+Read 300		// Emits a simple successful translation
+Write 3000		// Page faults, gets loaded into PFN 1 and made dirty

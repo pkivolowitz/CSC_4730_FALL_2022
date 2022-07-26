@@ -1,0 +1,15 @@
+Write 0			// page_fault; will go in pfn 0
+Read 2048		// page_fault; will go in pfn 1
+Read 4096		// page_fault; will go in pfn 2
+Read 6144		// page_fault; will go in pfn 3
+Read 8192		// page_fault; will go in pfn 4
+Read 10240		// page_fault; will go in pfn 5
+Read 12288		// page_fault; will go in pfn 6
+Read 14336		// page_fault; will go in pfn 7
+Read 16384		// page_fault; will go in pfn 0 ejecting vpn 0
+Read 2048		// returns pfn 1
+Read 0			// page_fault; will go in pfn 1 ejecting vpn 1
+Read 18432		// page_fault; will go in pfn 2 ejecting vpn 2
+Write 6144		// Successful translation
+DUMP_PT
+DUMP_MMU

@@ -1,0 +1,15 @@
+Machine Architecture:
+Page Size (bits):           11
+Page Size (bytes):          2048
+VA Size (bits):             16
+VA Size (bytes):            65536
+Physical Memory (bytes):    16384
+Physical Pages:             8
+Read 0
+VPN: 0 VA: 0 PAGE FAULT
+VPN: 0 VA: 0 ASSIGNING TO PFN: 0
+VPN: 0 VA: 0 SWAPPING IN TO PFN: 0
+Read 1
+VPN: 0 VA: 1 SUCCESSFUL TRANSLATION TO PFN: 0
+Read 2
+VPN: 0 VA: 2 SUCCESSFUL TRANSLATION TO PFN: 0
