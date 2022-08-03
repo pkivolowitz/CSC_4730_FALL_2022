@@ -1,440 +1,576 @@
-# CSC 4730 Project 4
+# CSC 4730 Project 5
 
-In this project you will write three programs that implement free space managers.
+This is a simulation of a simple machine with limited memory and small
+virtual address spaces. You will simulate a linear page table plus
+a Translation Lookaside Buffer.
 
-These will be:
+## Setting expectations
 
-1. Slab
-
-2. Next Fit
-
-3. Best Fit
-
-You can choose to implement these in C or C++. I would definitely
-choose C++ - see [here](./README.md#suggestion).
-
-You will implement these as three separate executables but you may share code
-between them if you are able to design some common data structures and
-algorithms.
-
-The programs may read a list of commands from standard input and write
-results to standard output. Alternatively, your programs may execute a
-prescribed sequence of steps, for example the slab allocator.
-
-You have **NO FREEDOM WHATSOEVER** as to the
-format of the output as your programs will be tested by shell script
-(provided to you with some but not all test data).
-
-As such, you cannot use native Windows for this project.
-
-## Slab Allocator
-
-This program is *not* interactive. You must write the tests
-described below, hard coding them into the program.
-
-The slab allocator will work on slabs of 512 bytes. A "gulp" is when
-the allocator has run out of slabs to dole out and needs to allocate
-a large group of slabs all at once. The gulp size is 128. That is,
-when the allocator needs to allocate more slabs because it has run
-out, the allocator will make a gulp of 128 * 512 bytes.
-
-Slabs which are returned to the pool, are pushed onto a queue. If
-slab *a* is freed, the next slab to be allocated (without intervening
-frees) will be *a*.
-
-Your program **must** follow these steps which will exercise your safeguards
-and error checking. Any tests that fail must print the error messages given
-to you below and must cause the program to return 1.
-
-If no errors are found, the program must return 0.
-
-Note: In some of these steps, it is an error to have NOT found an error.
-In other words, you're supposed to trigger error checking code you must
-write and if the error checking code does not trigger *that's* the
-real error that must be reported and your program exit with a return
-code of 1.
-
-1. Allocate 256 slabs consecutively.
-
-   This will cause two gulps and 256 print outs from your allocator.
-
-   You will test to ensure the number of available slabs is exactly 0
-   because step 1 allocates the exact right number of slabs to empty
-   all available.
-
-2. All 256 slabs are then freed. The order in which they are freed is not important.
-
-   You will test to ensure that the number of available slabs is
-   exactly 256. If the number of available slabs is not 256 you will
-   print the error given to you below and exit the program with
-   return code 1.
-
-3. One slab will be allocated and then freed. Remember its address.
-
-4. Another slab will be allocated and then freed. Remember its address.
-
-5. The two addresses are compared - they should be the same and reported so.
-
-   If the test fails, your program must exit with a return code of 1.
-
-6. You will attempt to free a slab giving a null address. This should be
-   flagged as an error. If you don't catch the error, the message given
-   below must be printed and your program exit with return code 1.
-
-7. You will attempt to free too many buffers. At this time, all buffers
-   should have been returned to the free pool. Repeat an attempt to
-   free the buffer you remembered in Step 4. Because the number of
-   available buffers reads full, the "too many frees" error should
-   be triggered.
-
-   **NOTE THAT YOU SHOULD CHECK FOR TOO MANY FREES BEFORE CHECKING
-   FOR A DOUBLE FREE.**
-
-8. Now allocate TWO slabs. Return the second one TWICE. This should
-   trigger a double free error. If the error is not found, report
-   the failure to catch the error using the text given below and
-   exit your program with a return code of 1.
-
-9. You will attempt to free a make believe slab whose address is 12345.
-   This will, of course, be flagged as an error. If you do not catch
-   the error, you must note this using the text given below. Then
-   your program must exit with a return code of 1.
-
-[Here](./slab_output.txt) is the output you must produce LETTER FOR LETTER... it is long.
-
-Line 1 says:
+Including all, here is how my code broke down:
 
 ```text
-Gulping
+     255    1151    7263 project.cpp
+      53     147    1319 pmme.cpp
+      43     154     971 include/arch.hpp
+      31      71     583 include/pmme.hpp
+     382    1523   10136 total
 ```
 
-This is the output you must emit when you gulp space for 128 512 byte slabs.
+This is not a challenge. Your solution may vary significantly from this.
+I provide this data only to set your expectations. If you find yourself
+writing twice as many lines, you're doing it wrong.
 
-Here are the next three lines. As you can see, slabs are being allocated as
-per step 2 above. Notice the number at the end of each line. This number is
-the count of the available slabs left to allocate. One slab was given away,
-hence the number 127. Another is given away, hence the number 126. Etc.
+## Difficulty and correspondence to OSTEP
+
+You might find this project quite demanding. Read an internalize the
+lessons in these chapters: 18, 19, 21 and 22.
+
+## Work rules
+
+You may work with a partner on this project. The usually rules apply:
+
+* Your code must be submitted only by one person and must include the
+names of both partners.
+
+* The non-code-submitting partner must submit a **text** file including
+the names of both partners.
+
+## Comments about the above
+
+You will recognize that the above sections about expectations and work
+rules typically comes at the end of my specifications. This time they
+appear at the beginning. This is because this project *can* be hard. If
+you don't do the readings, very carefully, you will find this project
+very hard.
+
+## Your output
+
+Your output must match mine letter for letter, right down to the `setw`
+values (which I will indicate where appropriate). Any discrepancies from
+my supplied output will result in massive penalties.
+
+## How I will build you code
+
+You must use C or C++.  These are the `g++` options I will use when
+building your code:
+
+| Option | Meaning |
+| ------ | ------- |
+| `-g` | enable debugging |
+| `-std=c++11` | Using C++ 11 |
+| `-Wall` | flag "all" warnings |
+| `--pedantic` | flag *even more than "all"* warnings |
+
+You must use these options as well or risk being blindsided by points
+off for missing any warnings that might be generated.
+
+Note the use of `--pedantic`.
+
+## The simulated machine
+
+[Here](./include/arch.hpp) are all the details you need to know about
+the machine you're simulating:
 
 ```text
-Allocating Slab  127
-Allocating Slab  126
-Allocating Slab  125
+#pragma once                                                        // 1 
+                                                                    // 2 
+/*    Machine Architecture                                          // 3 
+                                                                    // 4 
+    Pages are 2048 bytes long         --- 11 bits                   // 5 
+    VA Space is 32 pages              ---  5 bits                   // 6 
+    Virtual Addresses are therefore   --- 16 bits                   // 7 
+                                                                    // 8 
+    Physical memory can fit           ---  8 pages                  // 9 
+    PFN in bits                       ---  3 bits                   // 10 
+*/                                                                  // 11 
+                                                                    // 12 
+const uint32_t PAGE_BITS    = 11;                                   // 13 
+const uint32_t PAGE_SIZE    = (1 << PAGE_BITS);                     // 14 
+const uint32_t PFN_BITS     = 3;                                    // 15 
+const uint32_t VPN_BITS     = 5;                                    // 16 
+const uint32_t VRT_PAGES    = (1 << VPN_BITS);                      // 17 
+const uint32_t PHYS_PAGES   = (1 << PFN_BITS);                      // 18 
+const uint32_t PHYS_SIZE    = PHYS_PAGES * PAGE_SIZE;               // 19 
+                                                                    // 20 
+const uint32_t VA_SIZE_BITS = VPN_BITS + PAGE_BITS;                 // 21 
+const uint32_t VA_SIZE      = 1 << (VA_SIZE_BITS);                  // 22 
+                                                                    // 23 
+struct PTE {                                                        // 24 
+    uint32_t dirty : 1;                                             // 25 
+    uint32_t referenced : 1;        // UNUSED                       // 26 
+    uint32_t present : 1;                                           // 27 
+    uint32_t valid : 1;                                             // 28 
+    uint32_t rw : 1;                // UNUSED                       // 29 
+    uint32_t pfn : PFN_BITS;                                        // 30 
+};                                                                  // 31 
+                                                                    // 32 
+struct _VA {                                                        // 33 
+    uint16_t offset : PAGE_BITS;                                    // 34 
+    uint16_t vpn : VPN_BITS;                                        // 35 
+};                                                                  // 36 
+                                                                    // 37 
+struct VRT_Address {                                                // 38 
+    union {                                                         // 39 
+        uint16_t value;                                             // 40 
+        _VA virtual_address;                                        // 41 
+    };                                                              // 42 
+};                                                                  // 43 
 ```
 
-The following is key - found on Lines 128 to 131:
+### Print a description of the machine
+
+The first things you must output is a description of the machine. You
+must compute any of the following values which might be derived from
+other values. Your output must match:
 
 ```text
-Allocating Slab    1
-Allocating Slab    0
-Gulping
-Allocating Slab  127
+Machine Architecture:
+Page Size (bits):           11
+Page Size (bytes):          2048
+VA Size (bits):             16
+VA Size (bytes):            65536
+Physical Memory (bytes):    16384
+Physical Pages:             8
 ```
 
-This means you correctly gulped again when you ran out of available
-buffers. The next 128 lines are allocating the newly gulped
-buffers.
+I used `setw()` for the first column with a value of 28.
 
-Line 259 is printed after you have freed all of the slabs you
-allocated. If this test fails, you must print:
+There can be no magic numbers in your code other than the most obvious
+of values (like 0).
+
+## Required command line options
+
+You must support the **required** option `-f` which has a **required**
+parameter. The parameter to the `-f` option is the name of the data
+file from which your program will receive input.
+
+For example:
 
 ```text
-"Number of Available Slabs should be 0. Is: <some number> (Wrong)
+$ ./a.out -f test0.txt
+Machine Architecture:
+Page Size (bits):           11
+Page Size (bytes):          2048
+VA Size (bits):             16
+VA Size (bytes):            65536
+Physical Memory (bytes):    16384
+Physical Pages:             8
 ```
 
-Then your program must exit with return code of 1.
+`test0.txt` is an empty file so only the machine description is printed.
 
-Line 260 caused by step 2 above.
-
-Line 261 is the test called for in step 2 above. If the test
-fails you must print:
+Here is what you must print if the file specified by the `-f` option
+cannot be opened:
 
 ```text
-Number of Available Slabs should be 256. Is: <some number> (Wrong)
+$ ./a.out -f foo      
+Failed to open: foo
+Cause: No such file or directory
 ```
 
-Then your program must exit with a return code of 1.
+The text following "Cause:" comes from `perror()`.
 
-You are now working on Step 3, 4 and 5 above.
-
-Assuming you're still running, you must allocate one slab. Remember its
-address. Free it. This accounts for line 262 and is Step 3.
-
-Allocate a second slab. This accounts for line 263 and is Step 4.
-Remember its address.
-
-You must test that the addresses returned by both of the last allocations
-are **the same**. This is Step 5 above.
-
-**THIS MEANS YOUR FREE LIST IS MANAGED AS A LIFO - LAST IN - FIRST OUT.**
-
-Line 264 is printed if the results match. If the two values are NOT the
-same, this is the error you must print:
+Here is what you must print if the `-f` option is missing:
 
 ```text
-Alloc / Free / Alloc Test " failed
+$ ./a.out       
+Must specify file name with -f
 ```
 
-Then your program exits with a return code of 1.
+All of the above will be tested by me. If there are any deviations,
+points will be deducted.
 
-Assuming you are still running you are proceeding to Step 6. You must test your handling of attempting to free a nullptr.
+## All error messages must go to `cerr` and program return code set
 
-Line 265 shows success. If you fail to catch the attempt to free a nullptr,
-you must print:
+Any error message you print must go to `cerr`. Should you print anything
+to `cerr`, your program's return code must be set to something other
+than 0. Check your program's return code with:
 
 ```text
-Did Not Catch Attempt to Free NULL
+echo $?
 ```
 
-If the test failed, you must then exit with a return code of 1.
+## Opcodes
 
-Assuming you are still running you are moving on to Step 7. At this time, all buffers
-should have been returned to the free pool. Repeat an attempt to free the buffer
-you remembered in Step 4. Because the number of available buffers reads full,
-the "too many frees" error should be triggered.
+The data files consist of lines bearing opcodes along with an argument
+(for "Read" and "Write") or an opcode with no argument. I suggest you
+read the data file using `getline()` and turn each line into a
+`stringstream` to pick the line apart.
 
-**NOTE THAT YOU SHOULD CHECK FOR TOO MANY FREES BEFORE CHECKING FOR A DOUBLE FREE.**
-
-Line 266 shows the correct result. If your test failed, you must print:
+Any characters beyond was is expected is to be considered a comment.
+Thus, these are each OK:
 
 ```text
-Did Not Catch Freeing of Too Many Buffers
+Read 0                     // all of this is ignored
+DUMP_MMU                   // and this too
+Write 10
+Read 0
 ```
 
-and exit your program with a return code of 1.
+### Opcode DUMP_MMU
 
-Now you are on to Step 8.
+You are simulating an MMU (memory management unit) along with
+implementing a page table for a single process. Specifically,
+you're simulating a translation lookaside buffer (TLB) inside the
+MMU.
 
-Line 267 shows an allocation.
+The architecture of the machine tells you how many TLB entries you
+need to have. Our TLB's are not as complex as real ones.
 
-Line 268 shows an allocation. Free this slab twice. This should trigger
-line 269. If it does not, you must print:
-
-```text
-Did Not Catch Attempt to Double Free
-```
-
-and exit your program with a return code of 1.
-
-Assuming you're still running, now you are on Step 9.
-
-You are to attempt to free a slab at address 12345. This of course is
-nonsense - you must catch this error. If you correctly do, print line
-270. If you don't you must print:
-
-```text
-Did Not Catch Attempt to Free BAD Address
-```
-
-Finally, print line 271 and exit your program with return code of 0.
-
-The destructors will run which should **FREE EVERY BYTE YOU HAVE
-ALLOCATED WHICH IS EASY TO DO SINCE YOU REMEMBERED THE BASE ADDRESS
-OF EVERY GULP, RIGHT?**
-
-### Setting Expectations
-
-My implementation with all error checking and some comments and
-blank lines ran 207 lines. This is just to set your expectations and
-is not a challenge. My program, by the way, is shorter that the
-text describing it. When you think of complaining how much time
-you're putting into this program, I had to:
-
-* Think of the project
-
-* Write the program
-
-* Write the specification
-
-So, we all shared the pain. :)
-
-## Next Fit and Best Fit
-
-Yes, TWO MORE programs to implement in this project. Yikes.
-
-**If you DESIGN your implementation right, both programs will
-be essentially identical.**
-
-My implementations differ in length by 3 lines and sixty seven
-bytes. Of course, this counts only length. There are more than
-three different lines and sixty seven different characters. For
-example, one difference would be:
+Here is the TLB structure I used - it is the minimum you need for
+this program:
 
 ```c++
-BestFit nf(size_of_ram);
+struct PMME {
+	PMME() = default;
+	bool in_use;
+	uint32_t VPN;
+	uint32_t PFN;
+};
 ```
 
-versus
+You must arrange the *right* number of these, according to the machine
+definition, into a table. You will need some methods that work on the
+table. In my implementation I defined 5 methods. Your solution may be
+different.
 
-```c++
-NextFit nf(size_of_ram);
-```
-
-Do you dig what I'm putting down?
-
-### NOT REAL MEMORY
-
-This is a simulation. All sizes are given in kibibytes. No actual
-calls to `malloc()` are made in these programs. You are *making
-believe* you're managing free user memory. Hint: Of course, you might
-create instances of classes that might get pushed onto and removed
-from various `vector`s.
-
-### Command Line Arguments You Must Support
-
-All three executables must implement the following command line options:
-
-| Option | Argument | Meaning | Default |
-| ------ | -------- | ------- | ------- |
-| -h     | none     | prints this help text | none |
-| -k     | number of Kibibytes | sets the maximal size of free memory | 512 |
-
-### Interactive Commands You Must Implement
-
-| Command | Argument | Meaning |
-| ------- | -------- | ------- |
-| q | None | Exits the program |
-| p | None | Prints the Free and Allocated lists |
-| a | size | Attempts to Allocate `size` kibibytes |
-| f | addr | Attempts to Free an allocation starting at `addr` |
-| # | text | A `#` means skip the entire line |
-
-### Test Files
-
-A lot of [tests](./tests/) are provided to you. These are what will be used
-to grade your work. You are also provides with a
-[shell script](./tests/expected_output_test.bash) that will run the tests
-*and tell you if your program is correct!*.
-
-**Remember, you must match output letter for letter to pass.**
-
-With that said, I have programmed the `diff` command to be somewhat
-permissive.
-
-Here is an example of using one of the tests:
+When you encounter a `DUMP_MMU` you must print the contents of your
+MMU's TLB matching the following format exactly:
 
 ```text
-./expected_output_test.bash -a ../best -i test_20
+MMU:
+[  0] USED VPN:    7
+[  1] USED VPN:   23
+[  2] USED VPN:   16
+[  3] USED VPN:   28
+[  4] USED VPN:   22
+[  5] USED VPN:   13
+[  6] USED VPN:   15
+[  7] USED VPN:    9
 ```
 
-Notice this assumes you have changed directories to a subfolder in
-relation to where your executables live.
+Formatting:
 
-Tests numbered 19 or less are for Next Fit.
+* The first column is in a field of 3 spaces.
 
-Tests numbered 20 and more are for Best Fit.
+* The Virtual Page Number is printed in a field of 4 spaces, right
+justified.
 
-Here is the output from `test_20` using the test script.
+If an entry is unused, print "FREE" rather than "USED".
+
+### Opcode DUMP_PT
+
+When you encounter a `DUMP_PT` command, you must print the contents
+of your simulated linear page table, like so:
 
 ```text
-Test input file:       test_20.txt
-Expected output file:  test_20.expected_output.txt
-Expected output (must match letter for letter):
-Free List
- Index   Start  Length
-[0000]       0     512
+PAGE TABLE:
+[  7] CLEAN PRES IN PFN:    0 
+[  9] CLEAN PRES IN PFN:    7 
+[ 13] CLEAN PRES IN PFN:    5 
+[ 15] DIRTY PRES IN PFN:    6 
+[ 16] CLEAN PRES IN PFN:    2 
+[ 22] CLEAN PRES IN PFN:    4 
+[ 23] CLEAN PRES IN PFN:    1 
+[ 28] CLEAN PRES IN PFN:    3 
+```
 
-Allocated List is empty
+**Notice that only PTEs that are marked present are printed.**
 
-Your output:
-Free List
- Index   Start  Length
-[0000]       0     512
+Formatting:
 
-Allocated List is empty
+* The first column is in a field of 3 spaces.
 
+* The final value is printed in a field of 4 spaces, right
+justified.
+
+The second column may contain only "CLEAN" or "DIRTY".
+
+All lines will list "PRES" since only PTE's that are marked present
+are printed.
+
+The final number represents the Physical Frame Number holding the
+present page.
+
+Notice:
+
+```text
+[  5] USED VPN:   13
+```
+
+from the MMU and
+
+```text
+[ 13] CLEAN PRES IN PFN:    5 
+```
+
+from the Page Table. Notice how they refer to each other. This
+agreement must always be true.
+
+### Opcode Read
+
+The Read opcode specifies a virtual address.
+
+### Opcode Write
+
+The Write opcode specifies a virtual address.
+
+## The "swap device"
+
+Assume all virtual pages are already loaded on a "swap device." The
+swap device doesn't really exist **but** you still have to deal with
+in in two ways:
+
+A page which is not already in memory must be swapped in.
+
+A page selected for ejection that is dirty, must be "written back" to
+the swap device.
+
+## For both Read and Write
+
+Your job is to perform a mock address translation given the virtual
+address in the Read or Write to a physical address.
+
+Given:
+
+```text
+Read 0
+Read 1
+```
+
+The correct output (after printing the machine description) is:
+
+```text
+Read 0                                                              // 1 
+VPN: 0 VA: 0 PAGE FAULT                                             // 2 
+VPN: 0 VA: 0 ASSIGNING TO PFN: 0                                    // 3 
+VPN: 0 VA: 0 SWAPPING IN TO PFN: 0                                  // 4 
+Read 1                                                              // 5 
+VPN: 0 VA: 1 SUCCESSFUL TRANSLATION TO PFN: 0                       // 6 
+```
+
+**NOTE the line numbers are not part of the output.**
+
+Line numbers 1, 5 and 7 let us know what command has been read.
+
+Addresses 0, 1 and 2 are all on VPN 0. Notice VPN 0 is the only virtual
+page number referenced.
+
+Line 2 says virtual address 0 is found on virtual page number 0 and
+this access has caused a page fault because VPN 0 is not already
+resident in memory.
+
+Physical memory is empty right now, so the faulting page will be put
+into physical frame number 0 (line 3).
+
+Line 4 says VPN 0 is brought in from the swap device into PFN 0.
+
+Line 5 is a read of VA 1. VA 1 is also on VPN 0.
+
+Line 6 says that VPN 0 was found to be already in memory at PFN 0.
+
+## Differentiating "NEWLY DIRTY" from "REPEAT WRITE"
+
+Given:
+
+```text
+Read 0			// Page faults and gets loaded into PFN 0
+Write 100		// Emits a NEWLY DIRTY
+Write 200		// Emits a REPEAT WRITE
+Read 300		// Emits a simple successful translation
+Write 3000		// Page faults, gets loaded into PFN 1 and made dirty
+```
+
+The correct output (after the machine description) is:
+
+```text
+Read 0                                                              // 1
+VPN: 0 VA: 0 PAGE FAULT                                             // 2
+VPN: 0 VA: 0 ASSIGNING TO PFN: 0                                    // 3
+VPN: 0 VA: 0 SWAPPING IN TO PFN: 0                                  // 4
+Write 100                                                           // 5
+VPN: 0 VA: 100 SUCCESSFUL TRANSLATION TO PFN: 0 NEWLY DIRTY         // 6
+Write 200                                                           // 7
+VPN: 0 VA: 200 SUCCESSFUL TRANSLATION TO PFN: 0 REPEAT WRITE        // 8
+Read 300                                                            // 9
+VPN: 0 VA: 300 SUCCESSFUL TRANSLATION TO PFN: 0                     // 10
+Write 3000                                                          // 11
+VPN: 1 VA: 3000 PAGE FAULT                                          // 12
+VPN: 1 VA: 3000 ASSIGNING TO PFN: 1                                 // 13
+VPN: 1 VA: 3000 SWAPPING IN TO PFN: 1 NEWLY DIRTY                   // 14
+```
+
+Again, the line numbers are not part of the output.
+
+Lines 1 to 4 show a read to VPN 0 which gets loaded into memory in PFN 0.
+
+Compare the output caused by the writes on lines 5 and 7 to the same
+page. "NEWLY DIRTY" is printed when a page is first marked dirty.
+"REPEAT WRITE" is printed when you notice a write to a page that is
+already dirty.
+
+Printing this information is actually a debugging aid for you.
+
+```text
+pk_paging_tlb % grep Write test3.txt | wc
+       3      27     135
+pk_paging_tlb % ./a.out -f test3.txt | grep NEWLY | wc
+       2      22     110
+pk_paging_tlb % ./a.out -f test3.txt | grep REPEAT | wc
+       1      11      61
+```
+
+The "Write" opcode appears 3 times in test3.txt.
+
+You can confirm you marked pages dirty appropriately by adding together
+the number of NEWLY (2) and the number of REPEAT (1) lines.
+
+## Page replacement algorithm
+
+At some point, memory will become full - i.e. after some number of
+different pages are references by either read or write. Additional
+page references for pages not already in memory will require some
+page to be kicked out of memory so that the newly references page can
+be loaded in.
+
+You must select a page in physical memory to eject.
+
+The project uses a trivial page replacement algorithm. It simply goes
+in sequence with no regard for choosing clean pages first and no regard
+for pages that have been referenced recently.
+
+[test10.txt](./test10.txt) demonstrates this.
+
+```text
+Machine Architecture:                                               // 1 
+Page Size (bits):           11                                      // 2 
+Page Size (bytes):          2048                                    // 3 
+VA Size (bits):             16                                      // 4 
+VA Size (bytes):            65536                                   // 5 
+Physical Memory (bytes):    16384                                   // 6 
+Physical Pages:             8                                       // 7 
+Write 0                                                             // 8 
+VPN: 0 VA: 0 PAGE FAULT                                             // 9 
+VPN: 0 VA: 0 ASSIGNING TO PFN: 0                                    // 10 
+VPN: 0 VA: 0 SWAPPING IN TO PFN: 0 NEWLY DIRTY                      // 11 
+Read 2048                                                           // 12 
+VPN: 1 VA: 2048 PAGE FAULT                                          // 13 
+VPN: 1 VA: 2048 ASSIGNING TO PFN: 1                                 // 14 
+VPN: 1 VA: 2048 SWAPPING IN TO PFN: 1                               // 15 
+Read 4096                                                           // 16 
+VPN: 2 VA: 4096 PAGE FAULT                                          // 17 
+VPN: 2 VA: 4096 ASSIGNING TO PFN: 2                                 // 18 
+VPN: 2 VA: 4096 SWAPPING IN TO PFN: 2                               // 19 
+Read 6144                                                           // 20 
+VPN: 3 VA: 6144 PAGE FAULT                                          // 21 
+VPN: 3 VA: 6144 ASSIGNING TO PFN: 3                                 // 22 
+VPN: 3 VA: 6144 SWAPPING IN TO PFN: 3                               // 23 
+Read 8192                                                           // 24 
+VPN: 4 VA: 8192 PAGE FAULT                                          // 25 
+VPN: 4 VA: 8192 ASSIGNING TO PFN: 4                                 // 26 
+VPN: 4 VA: 8192 SWAPPING IN TO PFN: 4                               // 27 
+Read 10240                                                          // 28 
+VPN: 5 VA: 10240 PAGE FAULT                                         // 29 
+VPN: 5 VA: 10240 ASSIGNING TO PFN: 5                                // 30 
+VPN: 5 VA: 10240 SWAPPING IN TO PFN: 5                              // 31 
+Read 12288                                                          // 32 
+VPN: 6 VA: 12288 PAGE FAULT                                         // 33 
+VPN: 6 VA: 12288 ASSIGNING TO PFN: 6                                // 34 
+VPN: 6 VA: 12288 SWAPPING IN TO PFN: 6                              // 35 
+Read 14336                                                          // 36 
+VPN: 7 VA: 14336 PAGE FAULT                                         // 37 
+VPN: 7 VA: 14336 ASSIGNING TO PFN: 7                                // 38 
+VPN: 7 VA: 14336 SWAPPING IN TO PFN: 7                              // 39 
+Read 16384                                                          // 40 
+VPN: 8 VA: 16384 PAGE FAULT                                         // 41 
+VPN: 0 SELECTED TO EJECT DIRTY                                      // 42 
+VPN: 0 WRITING BACK                                                 // 43 
+VPN: 8 VA: 16384 ASSIGNING TO: 0                                    // 44 
+VPN: 8 VA: 16384 SWAPPING IN TO PHYSICAL FRAME: 0                   // 45 
+Read 2048                                                           // 46 
+VPN: 1 VA: 2048 SUCCESSFUL TRANSLATION TO PFN: 1                    // 47 
+Read 0                                                              // 48 
+VPN: 0 VA: 0 PAGE FAULT                                             // 49 
+VPN: 1 SELECTED TO EJECT                                            // 50 
+VPN: 0 VA: 0 ASSIGNING TO: 1                                        // 51 
+VPN: 0 VA: 0 SWAPPING IN TO PHYSICAL FRAME: 1                       // 52 
+Read 18432                                                          // 53 
+VPN: 9 VA: 18432 PAGE FAULT                                         // 54 
+VPN: 2 SELECTED TO EJECT                                            // 55 
+VPN: 9 VA: 18432 ASSIGNING TO: 2                                    // 56 
+VPN: 9 VA: 18432 SWAPPING IN TO PHYSICAL FRAME: 2                   // 57 
+Write 6144                                                          // 58 
+VPN: 3 VA: 6144 SUCCESSFUL TRANSLATION TO PFN: 3 NEWLY DIRTY        // 59 
+PAGE TABLE:                                                         // 60 
+[  0] CLEAN PRES IN PFN:    1                                       // 61 
+[  3] DIRTY PRES IN PFN:    3                                       // 62 
+[  4] CLEAN PRES IN PFN:    4                                       // 63 
+[  5] CLEAN PRES IN PFN:    5                                       // 64 
+[  6] CLEAN PRES IN PFN:    6                                       // 65 
+[  7] CLEAN PRES IN PFN:    7                                       // 66 
+[  8] CLEAN PRES IN PFN:    0                                       // 67 
+[  9] CLEAN PRES IN PFN:    2                                       // 68 
+MMU:                                                                // 69 
+[  0] USED VPN:    8                                                // 70 
+[  1] USED VPN:    0                                                // 71 
+[  2] USED VPN:    9                                                // 72 
+[  3] USED VPN:    3                                                // 73 
+[  4] USED VPN:    4                                                // 74 
+[  5] USED VPN:    5                                                // 75 
+[  6] USED VPN:    6                                                // 76 
+[  7] USED VPN:    7                                                // 77 
+```
+
+Lines 8 through 39 show the first 8 pages being loaded into memory.
+Memory is now full. 
+
+Line 40 references the 9th page. Lines 42 and 43 report that PFN 0 has
+been selected for ejection and that the page found there was dirty so
+has to be written back to the swap device.
+
+Compare this to lines 50 and 51 where the page being ejected was clean.
+
+## Self validation
+
+You are responsible for writing code to sanity check your machine state.
+
+For example, you must write a number of checks including this one:
+
+* You read an opcode that refers to VPN *n*.
+
+* You check the page table to discover that VPN *n* is not marked
+present.
+
+* You better check the MMU to confirm that VPN *n* is not in memory
+since it is not present.
+
+How about the opposite? A VPN is marked present in the page table but
+isn't found in memory?
+
+How about you finding a VPN is marked present and in PFN *x* but when
+you check physical memory, you find the page is loaded into PFN *y*?
+
+If you trip any of these conditions, you have a bug. These conditions
+should never ever happen if your code is working properly.
+
+## Running my tests
+
+```text
+$ cd tests
+$ ./expected_output_test.bash -i test_10 -a ../a.out
+-lots of output-
 Differences:
 PASSED
 Test finished
 ```
 
-Notice there are no prompts (see next) and that both your
-output and the expected output are given. If there were any
-differences, the differences would have been printed as well.
+## Writing your own tests
 
-### Disappearing Prompt
+**Professor K sez:**
 
-You must detect if you are taking input directly from an
-interactive terminal or not. Hint: `isatty()`. If you are
-taking input directly from the console, you must print
-a `>` plus a space as the interactive prompt.
+![sez](./professor_k_sez.jpg)
 
-If you detect that you are reading input from something
-*other* than a terminal, skip printing the prompt entirely.
+**As you implement a feature, you should write your own test that tests
+that feature.**
 
-### Suggestion
-
-Leverage your C++ knowledge to make implementation easier. You can
-use `vector` and `algorithm` for example. Mentioning `algorithm`
-might be a hint.
-
-### Next Fit
-
-Beginning at the beginning literally, First Fit starts looking for
-free memory beginning with the first free section. This is trivial
-to implement but leads to lots of fragmentation. An improvement is
-Next Fit.
-
-Next Fit remembers where it stopped checking for free sections
-the last time. For example, if the 10th free spot was chosen
-to be split, and not used up completely, there would still be
-a (smaller) 10th free spot. THIS is where Next Fit would start
-looking for the next allocation.
-
-Clearly, you'll need to handle a number of corner / special
-cases. Here are two - there might be more:
-
-* What happens when you think you'll start looking at what
-was the last free section but that section was used completely
-so it no longer exists?
-
-* When happens when you reach the end of the list of free
-sections having started searching in the middle of the list?
-
-### Next Fit Tests
-
-| Test Number | Purpose |
-| ----------- | ------- |
-| 01 | Tests proper initialization |
-| 02 | Tests giving away all of memory |
-| 03 | Tests giving away all of memory and then taking it back |
-| 04 | Tests coalescing |
-| 05 | Tests coalescing |
-| 06 | Tests Coalescing |
-| 07 | Tests something |
-| 08 | Tests making a hole then giving part of it away  |
-| 09 | Tests allocation too big for hole |
-| 10 | Test the NEXT fit behavior |
-| 11 | Test the NEXT fit behavior with a failure |
-| 12 | Tests next index wrap around |
-| 13 | Tests bad free |
-| 14 | Tests bad free |
-| 15 | Tests bad free |
-
-### Best Fit
-
-Best fit differs from Next Fit in that it will match the
-current allocation request to the "best" free section i.e.
-it will allocate from the smallest section that is big
-enough to handle the request.
-
-I don't know about you, but I smell a `sort`. Maybe more
-than one? Depends on your implementation. I used two
-different sorts but maybe that's just me. Your mileage
-may vary.
-
-### Best Fit Tests
-
-| Test Number | Purpose |
-| ----------- | ------- |
-| 20 | Tests initialization |
-| 21 | Tests giving away all of memory. |
-| 22 | Tests giving away all of memory and then taking it back. |
-| 23 | Test Free From Middle - No Coalesce  |
-| 24 | Test Free From Beginning - No Coalesce  |
-| 25 | Test Free From End - No Coalesce  |
-| 26 | Test Free With Coalesce Forwards  |
-| 27 | Test Free With Coalesce Backwards  |
-| 28 | Test Free With Coalesce Forwards and Backwards  |
-| 29 | Tests passing over bigger block for smaller one  | 30 | Tests bad free |
-| 31 | Tests bad free |
-| 32 | Tests bad free |
+**Write a little. Test a little.**
