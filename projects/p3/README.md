@@ -1,4 +1,4 @@
-# CSC 4730 Project 3
+# CSC 4730 Project 3 - MLFQ
 
 Hooray! You get to reuse some code from the previous project. The
 commands you must handle are repeated from the previous project.
@@ -7,8 +7,8 @@ In this project you will build a Multilevel Feedback Queue simulated
 scheduler in userland. Your scheduler will read a data file
 containing information simulating timer interrupts, job arrivals, job
 terminations, etc. Your output will be graded against known good
-results. Any deviation (even by a single space) may be counted as wrong,
-so **follow the specification completely**.
+results. Any deviation (even by a single space) may be counted as
+wrong, so **follow the specification completely**.
 
 You will be able to run tests against my grading script to debug any
 textual differences.
@@ -127,7 +127,9 @@ newjob,C
 interrupt,A goes to 1. B runs.
 ```
 
-Lines 1 and 4 have comments.
+Lines 1 and 4 have comments. `newjob` takes one argument so everything
+after the first argument is ignored. `interrupt` takes no arguments
+so everything past the word `interrupt` is a comment.
 
 ## NO MAGIC NUMBERS
 
@@ -138,7 +140,7 @@ You must not use any magic numbers. Any numeric literals should be
 
 **PAY ATTENTION TO THIS!**
 
-There shall be a total of 4 queues named 0 through 3.
+There shall be a total of 4 scheduling queues named 0 through 3.
 
 Each queue is managed with Round Robin.
 
@@ -275,7 +277,7 @@ expired when you receive an "epoch" command. Handle this as per
 the MLFQ algorithm. Note that "epoch" does **not** cause a
 rescheduling. That is, a process running when you receive an
 "epoch" will remain running but will also be marked as coming
-from the initial highest priority queue.
+from the highest priority queue.
 
 Here is a sample output from "epoch":
 
@@ -314,20 +316,11 @@ The folder containing the test script is meant to contain the folder
 `tests` where the test data is actually stored. So, if you specify `-i
 test1`, the actual data file will resolve to `tests/test1.input.txt`.
 
-Here is sample output from a test:
+You will be given only *some* of the tests I will use for grading. Some, I hold in reserve to test corner cases, etc. If you pass
+all the tests you are given, you have a reasonable chance of
+a high score but this is not a certainty.
 
-```text
-```
-
-Here is output from a more sophisticated test:
-
-```text
-```
-
-You will be given only *some* of the tests I will use for grading. Some,
-I hold in reserve to test corner cases, etc. If you pass all the tests
-you are given, you have a reasonable change of a high score but this is
-not a certainty.
+Write your own tests. Do not be complacent!
 
 Feel free to read the source code of the test script to see an example
 of `bash` scripting.
