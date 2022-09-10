@@ -27,10 +27,12 @@ Worthy of being highlighted, the attendance and lateness policy
 contained in the syllabus reads:
 
 ```text
-For every five classes missed, your final grade will be reduced by a
+~For every five classes missed, your final grade will be reduced by a
 full letter. Absences due to sports, music, or any other campus activity
 count as an unexcused absence. To be clear: A full letter grade means
-exactly that. For example, a B+ will be reduced to a C+.
+exactly that. For example, a B+ will be reduced to a C+.~
+
+Upon missing your 6th class, you will be penalized by one letter grade.
 
 We meet for 65 minutes. There is little room to “leave early.”
 Therefore, leaving a class early will be counted as a quarter class
